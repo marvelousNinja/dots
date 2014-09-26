@@ -1,42 +1,27 @@
-// Da plan.
-
-// 1. Let us think about incoming parameters...
-// 2. Bounding box.
-// 3. Collisions.
-// 4. Nicey dicey!
-// 5.
-// Algorithm:
-// 1. Handle collisions.
-//    a) Border.
-//    b) Other particles.
-// 2. Handle velocity changes.
-// 3. What about 'runs away from cursor?'
-
-
 var width = 960,
     height = 500;
 
-var nodes = d3.range(200).map(
+var nodes = d3.range(100).map(
   function() { 
     return {
-      radius: 10,
+      radius: 20,
       velocity: { 
         x: Math.random() * 2 - 1,
         y: Math.random() * 2 - 1
       }
     }; 
-  }),
-root = nodes[0];
+  });
 
-root.radius = 0;
-root.fixed = true;
+// root = nodes[0];
+
+// root.radius = 0;
+// root.fixed = true;
 
 
 var force = d3.layout.force()
   .gravity(0)
-  .charge(function(d, i) { return i ? 0 : -1000; })
+  .charge(function(d, i) { return 0 })
   .nodes(nodes)
-  .alpha(1000)
   .size([width, height]);
 
 force.start();
@@ -52,6 +37,14 @@ force.on("tick", function(e) {
     i,
     d,
     n = nodes.length;
+
+  // var sum_x = 0;
+  // for (i = 1; i < n; ++i) sum_x += Math.pow(nodes[i].velocity.x, 2);
+
+  // var sum_y = 0;
+  // for (i = 1; i < n; ++i) sum_y += Math.pow(nodes[i].velocity.y, 2);
+
+  // console.log(sum_x + sum_y);
 
   for (i = 1; i < n; ++i) q.visit(collide(nodes[i]));
 
@@ -93,33 +86,105 @@ force.on("tick", function(e) {
   force.resume();
 });
 
-canvas.on("mousemove", function() {
-  var p1 = d3.mouse(this);
-  root.px = p1[0];
-  root.py = p1[1];
-  force.resume();
-});
+// canvas.on("mousemove", function() {
+//   var p1 = d3.mouse(this);
+//   root.px = p1[0];
+//   root.py = p1[1];
+//   force.resume();
+// });
+
+function updateSpeeds(first, second) {
+  var normalVector = vectorByTwoPoints(first, second);
+
+  var firstNormalProjection = projectionOnVector(first.velocity, normalVector);
+  var secondNormalProjection = projectionOnVector(second.velocity, normalVector);
+
+  var tangentialVector = orthogonalVector(normalVector);
+
+  var firstTangentialProjection = projectionOnVector(first.velocity, tangentialVector);
+  var secondTangentialProjection = projectionOnVector(second.velocity, tangentialVector);
+
+  var tmp = firstNormalProjection;
+  firstNormalProjection = secondNormalProjection;
+  secondNormalProjection = tmp;
+
+  first.velocity = {
+    x: firstTangentialProjection.x + firstNormalProjection.x,
+    y: firstTangentialProjection.y + firstNormalProjection.y
+  }
+
+  second.velocity = {
+    x: secondTangentialProjection.x + secondNormalProjection.x,
+    y: secondTangentialProjection.y + secondNormalProjection.y
+  }
+}
+
+function vectorByTwoPoints(first, second) {
+  return {
+    x: second.x - first.x,
+    y: second.y - first.y
+  }
+}
+
+function projectionOnVector(target, normal) {
+  var normalLength = Math.sqrt(Math.pow(normal.x, 2) + Math.pow(normal.y, 2));
+  var projectionLength = (target.x * normal.x + target.y * normal.y) / normalLength;
+  var ratio = projectionLength / normalLength;
+
+  return {
+    x: normal.x * ratio,
+    y: normal.y * ratio
+  }
+}
+
+function orthogonalVector(source) {
+  return {
+    x: (-(source.y) * (source.y)) / source.x,
+    y: source.y
+  }
+}
 
 function collide(node) {
-  var r = node.radius + 16,
+  // So we calculate borders of rectangle, covering this node
+  var r = node.radius + 20,
   nx1 = node.x - r,
   nx2 = node.x + r,
   ny1 = node.y - r,
   ny2 = node.y + r;
+
+  // Then we create a function, which accepts a quad, and it's rectangular coordinates?
   return function(quad, x1, y1, x2, y2) {
     if (quad.point && (quad.point !== node)) {
+      // Then we calculate difference in X
       var x = node.x - quad.point.x,
+      // Then in Y
       y = node.y - quad.point.y,
+      // Then we calculate distance between their centers.
       l = Math.sqrt(x * x + y * y),
+      // Then we calculate minimum non-collision distance
       r = node.radius + quad.point.radius;
+      // If we actually 'collided', meaning that centers are closer than they should be...
       if (l < r) {
         l = (l - r) / l * .5;
+        // We push both nodes out of each other by the same values.
+        // That's actually the perfect place to strike with ... velocity change mechanism.
+        // updateSpeeds(node, quad.point);
+
+        updateSpeeds(node, quad.point);
         node.x -= x *= l;
         node.y -= y *= l;
         quad.point.x += x;
         quad.point.y += y;
       }
     }
+    // And here comes the optimization:
+    // True if children of that node is not visited
+    // False if visited
+    // I understand it like: True -> fuck traversing.
+    //                       False -> continue traversing.
+    // If there is no point->False.
+
+    // So, if quad is in boundaries... continue traversing.
     return x1 > nx2 || x2 < nx1 || y1 > ny2 || y2 < ny1;
   };
 }
