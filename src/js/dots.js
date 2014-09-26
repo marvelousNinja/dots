@@ -38,14 +38,6 @@ force.on("tick", function(e) {
     d,
     n = nodes.length;
 
-  // var sum_x = 0;
-  // for (i = 1; i < n; ++i) sum_x += Math.pow(nodes[i].velocity.x, 2);
-
-  // var sum_y = 0;
-  // for (i = 1; i < n; ++i) sum_y += Math.pow(nodes[i].velocity.y, 2);
-
-  // console.log(sum_x + sum_y);
-
   for (i = 1; i < n; ++i) q.visit(collide(nodes[i]));
 
   for (i = 1; i < n; ++i) {
@@ -94,54 +86,15 @@ force.on("tick", function(e) {
 // });
 
 function updateSpeeds(first, second) {
-  var normalVector = vectorByTwoPoints(first, second);
+  var normalVector = Vector.byPoints(first, second),
+      firstNormalProjection = Vector.project(first.velocity, normalVector),
+      secondNormalProjection = Vector.project(second.velocity, normalVector),
+      tangentialVector = Vector.orthogonal(normalVector),
+      firstTangentialProjection = Vector.project(first.velocity, tangentialVector),
+      secondTangentialProjection = Vector.project(second.velocity, tangentialVector);
 
-  var firstNormalProjection = projectionOnVector(first.velocity, normalVector);
-  var secondNormalProjection = projectionOnVector(second.velocity, normalVector);
-
-  var tangentialVector = orthogonalVector(normalVector);
-
-  var firstTangentialProjection = projectionOnVector(first.velocity, tangentialVector);
-  var secondTangentialProjection = projectionOnVector(second.velocity, tangentialVector);
-
-  var tmp = firstNormalProjection;
-  firstNormalProjection = secondNormalProjection;
-  secondNormalProjection = tmp;
-
-  first.velocity = {
-    x: firstTangentialProjection.x + firstNormalProjection.x,
-    y: firstTangentialProjection.y + firstNormalProjection.y
-  }
-
-  second.velocity = {
-    x: secondTangentialProjection.x + secondNormalProjection.x,
-    y: secondTangentialProjection.y + secondNormalProjection.y
-  }
-}
-
-function vectorByTwoPoints(first, second) {
-  return {
-    x: second.x - first.x,
-    y: second.y - first.y
-  }
-}
-
-function projectionOnVector(target, normal) {
-  var normalLength = Math.sqrt(Math.pow(normal.x, 2) + Math.pow(normal.y, 2));
-  var projectionLength = (target.x * normal.x + target.y * normal.y) / normalLength;
-  var ratio = projectionLength / normalLength;
-
-  return {
-    x: normal.x * ratio,
-    y: normal.y * ratio
-  }
-}
-
-function orthogonalVector(source) {
-  return {
-    x: (-(source.y) * (source.y)) / source.x,
-    y: source.y
-  }
+  first.velocity = Vector.sum(firstTangentialProjection, secondNormalProjection);
+  second.velocity = Vector.sum(secondTangentialProjection, firstNormalProjection);
 }
 
 function collide(node) {
