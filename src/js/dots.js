@@ -1,4 +1,4 @@
-Dots = {
+var Dots = {
   initialize: function(opts) {
     var options = Dots.setDefaults(opts),
         dots    = Dots.initializeDots(options),
@@ -15,7 +15,7 @@ Dots = {
       width:  options.width  || 900,
       height: options.height || 500,
       radius: options.radius || 20,
-      count:  options.count  || 10,
+      count:  options.count  || 100,
       container: options.container || 'body'
     }
   },
@@ -55,17 +55,17 @@ Dots = {
   },
 
   tickHandler: function(layout, context, dots, options) {
-    return function(e) {
-      Dots.collide(dots, options);
+    return function() {
+      Dots.solveCollisions(dots, options);
       Dots.move(dots);
       Dots.refresh(context, dots, options);
       layout.resume();
     }
   },
 
-  collide: function(dots, options) {
+  solveCollisions: function(dots, options) {
     var quadtree = d3.geom.quadtree(dots);
-    dots.forEach(function(dot) { quadtree.visit(Dots.collideOne(dot, options)) });
+    dots.forEach(function(dot) { quadtree.visit(Dots.collisionsFor(dot, options)) });
   },
 
   refresh: function(context, dots, options) {
@@ -86,62 +86,16 @@ Dots = {
     });
   },
 
-  // The following functions will be refactored
-
-  updateSpeeds: function(first, second) {
-    var normalVector = Vector.byPoints(first, second),
-      firstNormalProjection = Vector.project(first.velocity, normalVector),
-      secondNormalProjection = Vector.project(second.velocity, normalVector),
-      tangentialVector = Vector.orthogonal(normalVector),
-      firstTangentialProjection = Vector.project(first.velocity, tangentialVector),
-      secondTangentialProjection = Vector.project(second.velocity, tangentialVector);
-
-    first.velocity = Vector.sum(firstTangentialProjection, secondNormalProjection);
-    second.velocity = Vector.sum(secondTangentialProjection, firstNormalProjection);
-  },
-
-  collideOne: function(node, options) {
-    var horizontalHit = (node.y < 0) || (node.y > options.height); 
-    var verticalHit = (node.x < 0) || (node.x > options.width);
-
-    if (verticalHit) {
-      node.velocity.x *= -1;
-      if (node.x < 0) {
-        node.x = 0;
-      } else {
-        node.x = options.width;
-      }
-    } else {
-      if (horizontalHit) {
-        node.velocity.y *= -1;
-        if (node.y < 0) {
-          node.y = 0;
-        } else {
-          node.y = options.height;
-        }
-      }
-    }
-
-    var r = options.radius,
-    nx1 = node.x - r,
-    nx2 = node.x + r,
-    ny1 = node.y - r,
-    ny2 = node.y + r;
+  collisionsFor: function(dot, options) {
+    Physics.checkForBorderCollision(dot, options);
+    var nx1 = dot.x - options.radius,
+        nx2 = dot.x + options.radius,
+        ny1 = dot.y - options.radius,
+        ny2 = dot.y + options.radius;
 
     return function(quad, x1, y1, x2, y2) {
-      if (quad.point && (quad.point !== node)) {
-        var x = node.x - quad.point.x,
-        y = node.y - quad.point.y,
-        l = Math.sqrt(x * x + y * y),
-        r = options.radius + options.radius
-        if (l < r) {
-          l = (l - r) / l * .5;
-          Dots.updateSpeeds(node, quad.point);
-          node.x -= x *= l;
-          node.y -= y *= l;
-          quad.point.x += x;
-          quad.point.y += y;
-        }
+      if (quad.point && (quad.point !== dot)) {
+        Physics.checkForCollision(dot, quad.point, options);
       }
 
       return x1 > nx2 || x2 < nx1 || y1 > ny2 || y2 < ny1;
