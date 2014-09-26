@@ -15,7 +15,7 @@ Dots = {
       width:  options.width  || 900,
       height: options.height || 500,
       radius: options.radius || 20,
-      count:  options.count  || 100,
+      count:  options.count  || 10,
       container: options.container || 'body'
     }
   },
@@ -56,49 +56,38 @@ Dots = {
 
   tickHandler: function(layout, context, dots, options) {
     return function(e) {
-      var q = d3.geom.quadtree(dots),
-          i,
-          d,
-          n = dots.length;
-
-      for (i = 1; i < n; ++i) q.visit(Dots.collide(dots[i], options));
-
-      for (i = 1; i < n; ++i) {
-        d = dots[i];
-        var horizontalHit = (d.y < 0) || (d.y > options.height); 
-        var verticalHit = (d.x < 0) || (d.x > options.width);
-
-        if (verticalHit) {
-          d.velocity.x *= -1;
-          if (d.x < 0) {
-            d.x = 5;
-          } else {
-            d.x = options.width - 5;
-          }
-        } else {
-          if (horizontalHit) {
-            d.velocity.y *= -1;
-            if (d.y < 0) {
-              d.y = 5;
-            } else {
-              d.y = options.height - 5;
-            }
-          }
-        }
-      }
-
-      context.clearRect(0, 0, options.width, options.height);
-      context.fillStyle = "steelblue";
-      context.beginPath();
-      for (i = 1; i < n; ++i) {
-        d = dots[i];
-        d.x += d.velocity.x;
-        d.y += d.velocity.y;
-        context.moveTo(d.x, d.y);
-        context.arc(d.x, d.y, options.radius, 0, 2 * Math.PI);
-      }
-      context.fill();
+      Dots.collide(dots, options);
+      Dots.move(dots);
+      Dots.refresh(context, dots, options);
       layout.resume();
+    }
+  },
+
+  collide: function(dots, options) {
+    var quadtree = d3.geom.quadtree(dots);
+    var i, n = dots.length;
+    for (i = 1; i < n; ++i) quadtree.visit(Dots.collideOne(dots[i], options));
+  },
+
+  refresh: function(context, dots, options) {
+    var i, n = dots.length;
+    context.clearRect(0, 0, options.width, options.height);
+    context.fillStyle = "steelblue";
+    context.beginPath();
+    for (i = 1; i < n; ++i) {
+      var d = dots[i];
+      context.moveTo(d.x, d.y);
+      context.arc(d.x, d.y, options.radius, 0, 2 * Math.PI);
+    }
+    context.fill();
+  },
+
+  move: function(dots) {
+    var i, n = dots.length;
+    for (i = 1; i < n; ++i) {
+      var d = dots[i];
+      d.x += d.velocity.x;
+      d.y += d.velocity.y;
     }
   },
 
@@ -114,8 +103,29 @@ Dots = {
     second.velocity = Vector.sum(secondTangentialProjection, firstNormalProjection);
   },
 
-  collide: function(node, options) {
-    var r = options.radius + 20,
+  collideOne: function(node, options) {
+    var horizontalHit = (node.y < 0) || (node.y > options.height); 
+    var verticalHit = (node.x < 0) || (node.x > options.width);
+
+    if (verticalHit) {
+      node.velocity.x *= -1;
+      if (node.x < 0) {
+        node.x = 0;
+      } else {
+        node.x = options.width;
+      }
+    } else {
+      if (horizontalHit) {
+        node.velocity.y *= -1;
+        if (node.y < 0) {
+          node.y = 0;
+        } else {
+          node.y = options.height;
+        }
+      }
+    }
+
+    var r = options.radius,
     nx1 = node.x - r,
     nx2 = node.x + r,
     ny1 = node.y - r,
