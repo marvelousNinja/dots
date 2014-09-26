@@ -65,31 +65,28 @@ Dots = {
 
   collide: function(dots, options) {
     var quadtree = d3.geom.quadtree(dots);
-    var i, n = dots.length;
-    for (i = 1; i < n; ++i) quadtree.visit(Dots.collideOne(dots[i], options));
+    dots.forEach(function(dot) { quadtree.visit(Dots.collideOne(dot, options)) });
   },
 
   refresh: function(context, dots, options) {
-    var i, n = dots.length;
     context.clearRect(0, 0, options.width, options.height);
     context.fillStyle = "steelblue";
     context.beginPath();
-    for (i = 1; i < n; ++i) {
-      var d = dots[i];
-      context.moveTo(d.x, d.y);
-      context.arc(d.x, d.y, options.radius, 0, 2 * Math.PI);
-    }
+    dots.forEach(function(dot) {
+      context.moveTo(dot.x, dot.y);
+      context.arc(dot.x, dot.y, options.radius, 0, 2 * Math.PI);
+    });
     context.fill();
   },
 
   move: function(dots) {
-    var i, n = dots.length;
-    for (i = 1; i < n; ++i) {
-      var d = dots[i];
-      d.x += d.velocity.x;
-      d.y += d.velocity.y;
-    }
+    dots.forEach(function(dot) {
+      dot.x += dot.velocity.x;
+      dot.y += dot.velocity.y;
+    });
   },
+
+  // The following functions will be refactored
 
   updateSpeeds: function(first, second) {
     var normalVector = Vector.byPoints(first, second),
