@@ -10,14 +10,14 @@ var Physics = {
       } else {
         dot.x = options.width - options.radius;
       }
-    } else {
-      if (horizontalHit) {
-        dot.velocity.y *= -1;
-        if (dot.y < options.radius) {
-          dot.y = options.radius;
-        } else {
-          dot.y = options.height - options.radius;
-        }
+    }
+    
+    if (horizontalHit) {
+      dot.velocity.y *= -1;
+      if (dot.y < options.radius) {
+        dot.y = options.radius;
+      } else {
+        dot.y = options.height - options.radius;
       }
     }
   },

@@ -2,11 +2,13 @@ var Dots = {
   initialize: function(opts) {
     var options = Dots.setDefaults(opts),
         dots    = Dots.initializeDots(options),
+        pointer = Dots.initializePointer(dots),
         layout  = Dots.initializeLayout(dots, options),
         canvas  = Dots.initializeCanvas(options),
         context = Dots.initializeContext(canvas);
 
     Dots.initializeLayoutHandlers(layout, context, dots, options);
+    Dots.initializeMouseHandlers(canvas, pointer);
   },
 
   setDefaults: function(options) {
@@ -22,7 +24,7 @@ var Dots = {
   },
 
   initializeDots: function(options) {
-    return d3.range(options.count).map(function() {
+    return d3.range(options.count + 1).map(function() {
       return {
         velocity: {
           x: Math.random() - 0.5,
@@ -38,10 +40,18 @@ var Dots = {
     });
   },
 
+  initializePointer: function(dots) {
+    var pointer = dots[0];
+    pointer.fixed = true;
+    pointer.px = -1000;
+    pointer.py = -1000;
+    return pointer;
+  },
+
   initializeLayout: function(dots, options) {
     return d3.layout.force()
              .gravity(0)
-             .charge(0)
+             .charge(function(d, i) { return i == 0 ? -1000 : 0})
              .nodes(dots)
              .size([options.width, options.height])
              .start();
@@ -59,6 +69,18 @@ var Dots = {
 
   initializeLayoutHandlers: function(layout, context, dots, options) {
     layout.on('tick', Dots.tickHandler(layout, context, dots, options));
+  },
+
+  initializeMouseHandlers: function(canvas, pointer) {
+    canvas.on('mousemove', Dots.moveDeflectorHandler(pointer));
+  },
+
+  moveDeflectorHandler: function(pointer) {
+    return function() {
+      var point = d3.mouse(this);
+      pointer.px = point[0];
+      pointer.py = point[1];
+    }
   },
 
   tickHandler: function(layout, context, dots, options) {
@@ -81,6 +103,7 @@ var Dots = {
     context.clearRect(0, 0, options.width, options.height);
   
     dots.forEach(function(dot) {
+      if (dot.fixed) return;
       context.beginPath();
       context.fillStyle = Dots.rgbColor(dot.color);
       context.moveTo(dot.x, dot.y);
