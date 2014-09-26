@@ -11,11 +11,12 @@ var Dots = {
 
   setDefaults: function(options) {
     if(!options) options = {};
+
     return {
-      width:  options.width  || 900,
-      height: options.height || 500,
-      radius: options.radius || 20,
-      count:  options.count  || 100,
+      width:  options.width        || 900,
+      height: options.height       || 500,
+      radius: options.radius       || 20,
+      count:  options.count        || 150,
       container: options.container || 'body'
     }
   },
@@ -26,6 +27,12 @@ var Dots = {
         velocity: {
           x: Math.random() - 0.5,
           y: Math.random() - 0.5
+        },
+        color: {
+          red: 255,
+          green: Math.random() * 255 | 0,
+          blue: 0,
+          animationDirection: 1
         }
       }
     });
@@ -58,25 +65,49 @@ var Dots = {
     return function() {
       Dots.solveCollisions(dots, options);
       Dots.move(dots);
+      Dots.updateColors(dots);
       Dots.refresh(context, dots, options);
+
       layout.resume();
     }
   },
 
   solveCollisions: function(dots, options) {
     var quadtree = d3.geom.quadtree(dots);
-    dots.forEach(function(dot) { quadtree.visit(Dots.collisionsFor(dot, options)) });
+    dots.forEach(function(dot) { quadtree.visit(Dots.solveCollisionsFor(dot, options)) });
   },
 
   refresh: function(context, dots, options) {
     context.clearRect(0, 0, options.width, options.height);
-    context.fillStyle = "steelblue";
-    context.beginPath();
+  
     dots.forEach(function(dot) {
+      context.beginPath();
+      context.fillStyle = Dots.rgbColor(dot.color);
       context.moveTo(dot.x, dot.y);
       context.arc(dot.x, dot.y, options.radius, 0, 2 * Math.PI);
+      context.closePath();
+      context.fill();
     });
-    context.fill();
+  },
+
+  rgbColor: function(color) {
+    return 'rgb(' + color.red + ',' + color.green + ',' + color.blue + ')';
+  },
+
+  updateColors: function(dots) {
+    dots.forEach(function(dot) {
+      dot.color.green = dot.color.green + dot.color.animationDirection * ((Math.random() + 0.5)) * 10 | 0;
+      if (dot.color.green > 255) {
+        dot.color.green = 255;
+        dot.color.animationDirection *= -1;
+      } else {
+        if (dot.color.green < 0) {
+          dot.color.green = 0;
+          dot.color.animationDirection *= -1;
+        }
+      }
+      dot.color.green = dot.color.green;
+    });
   },
 
   move: function(dots) {
@@ -86,8 +117,9 @@ var Dots = {
     });
   },
 
-  collisionsFor: function(dot, options) {
+  solveCollisionsFor: function(dot, options) {
     Physics.checkForBorderCollision(dot, options);
+    
     var nx1 = dot.x - options.radius,
         nx2 = dot.x + options.radius,
         ny1 = dot.y - options.radius,
