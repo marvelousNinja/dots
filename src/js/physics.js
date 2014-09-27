@@ -23,7 +23,7 @@ var Physics = {
   },
 
   checkForCollision: function(first, second, options) {
-    Physics.onIntersection(first, second, options, function(first, second, xDiff, yDiff, currentDistance, allowedDistance) {
+    Physics.onCollision(first, second, options, function(first, second, xDiff, yDiff, currentDistance, allowedDistance) {
       Physics.pushOut(first, second, xDiff, yDiff, currentDistance, allowedDistance);
       Physics.speedsAfterCollision(first, second);
     });
@@ -41,25 +41,27 @@ var Physics = {
     second.velocity = Vector.sum(secondTangentialProjection, firstNormalProjection);
   },
 
-  onIntersection: function(first, second, options, callback) {
+  onCollision: function(first, second, options, callback) {
     var xDiff = first.x - second.x,
         yDiff = first.y - second.y,
         currentDistance = Vector.length({ x: xDiff, y: yDiff }),
         allowedDistance = options.radius * 2;
     
     if (currentDistance < allowedDistance) {
-      return callback(first, second, xDiff, yDiff, currentDistance, allowedDistance);
+      callback(first, second, xDiff, yDiff, currentDistance, allowedDistance);
     }
   },
 
   pushOut: function(first, second, xDiff, yDiff, currentDistance, allowedDistance) {
-    var multipler = (currentDistance - allowedDistance) / (2 * currentDistance),
-        xOut = xDiff * multipler,
-        yOut = yDiff * multipler;
-    
-    first.x -= xOut;
-    first.y -= yOut;
-    second.x += xOut;
-    second.y += yOut;
+    if (currentDistance < allowedDistance) {
+      var multipler = (currentDistance - allowedDistance) / (2 * currentDistance),
+          xOut = xDiff * multipler,
+          yOut = yDiff * multipler;
+
+      first.x -= xOut;
+      first.y -= yOut;
+      second.x += xOut;
+      second.y += yOut;
+    }
   }
 }
