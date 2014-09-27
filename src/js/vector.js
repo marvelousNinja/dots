@@ -8,6 +8,8 @@ var Vector = {
   },
 
   project: function(target, base) {
+    if(Vector.isZero(target) || Vector.isZero(base)) return Vector.zero();
+
     var ratio = Vector.scalarDot(target, base) / Math.pow(Vector.length(base), 2);
 
     return {
@@ -17,35 +19,31 @@ var Vector = {
   },
 
   orthogonal: function(base) {
-    if (base.x == 0 && base.y == 0) {
-      throw Error('Quite everything will be orthogonal to it');
-    }
+    var x, y;
 
     if (base.x == 0) {
-      return {
-        x: 1,
-        y: 0
-      }
+      x = 1;
+      y = 0;
+    } else if (base.y == 0) {
+      x = 0;
+      y = 1;
     } else {
-      if (base.y == 0) {
-        return {
-          x: 0,
-          y: 1
-        }
-      } else {
-        return {
-          x: -Math.pow(base.y, 2) / base.x,
-          y: base.y
-        }
-      }
+      x = -Math.pow(base.y, 2) / base.x;
+      y = base.y
     }
+
+    return { x: x, y: y }
   },
 
   byPoints: function(first, second) {
-    return {
+    var vector = {
       x: second.x - first.x,
       y: second.y - first.y
     }
+    
+    if (Vector.isZero(vector)) throw Error('Cannot build vector with two equal points');
+    
+    return vector;
   },
 
   sum: function(first, second) {
@@ -53,5 +51,13 @@ var Vector = {
       x: first.x + second.x,
       y: first.y + second.y
     }
+  },
+
+  isZero: function(vector) {
+    return vector.x == 0 && vector.y == 0;
+  },
+
+  zero: function() {
+    return { x: 0, y: 0 };
   }
 }
