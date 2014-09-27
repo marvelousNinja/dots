@@ -43,10 +43,6 @@ var Dots = {
   initializePointer: function(dots) {
     var pointer = dots[0];
     pointer.fixed = true;
-    pointer.isRoot = true;
-    pointer.px = -1000;
-    pointer.py = -1000;
-    pointer.radius = 0;
     return pointer;
   },
 
@@ -54,7 +50,7 @@ var Dots = {
     return d3.layout.force()
              .gravity(0)
              .charge(function(d, i) { return i == 0 ? -3000 : 0})
-             .chargeDistance(1000)
+             .chargeDistance(100)
              .nodes(dots)
              .size([options.width, options.height])
              .start();
@@ -153,7 +149,7 @@ var Dots = {
 
     return function(quad, x1, y1, x2, y2) {
       if (quad.point && (quad.point !== dot)) {
-        if (!dot.isRoot || !quad.point.isRoot) {
+        if (!dot.fixed || !quad.point.fixed) {
           Physics.checkForCollision(dot, quad.point, options);
         }
       }
