@@ -1,23 +1,23 @@
 var Physics = {
   checkForBorderCollision: function(dot, options) {
-    var horizontalHit = (dot.y < options.radius) || (dot.y > options.height - options.radius); 
-    var verticalHit = (dot.x < options.radius) || (dot.x > options.width - options.radius);
+    var horizontalHit = (dot.y < dot.radius) || (dot.y > options.height - dot.radius); 
+    var verticalHit = (dot.x < dot.radius) || (dot.x > options.width - dot.radius);
 
     if (verticalHit) {
       dot.velocity.x *= -1;
-      if (dot.x < options.radius) {
-        dot.x = options.radius;
+      if (dot.x < dot.radius) {
+        dot.x = dot.radius;
       } else {
-        dot.x = options.width - options.radius;
+        dot.x = options.width - dot.radius;
       }
     }
     
     if (horizontalHit) {
       dot.velocity.y *= -1;
-      if (dot.y < options.radius) {
-        dot.y = options.radius;
+      if (dot.y < dot.radius) {
+        dot.y = dot.radius;
       } else {
-        dot.y = options.height - options.radius;
+        dot.y = options.height - dot.radius;
       }
     }
   },
@@ -45,7 +45,7 @@ var Physics = {
     var xDiff = first.x - second.x,
         yDiff = first.y - second.y,
         currentDistance = Vector.length({ x: xDiff, y: yDiff }),
-        allowedDistance = options.radius * 2;
+        allowedDistance = first.radius + second.radius;
     
     if (currentDistance < allowedDistance) {
       callback(first, second, xDiff, yDiff, currentDistance, allowedDistance);

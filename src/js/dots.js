@@ -17,7 +17,6 @@ var Dots = {
     return {
       width:  options.width        || 900,
       height: options.height       || 500,
-      radius: options.radius       || 10,
       count:  options.count        || 350,
       container: options.container || 'body'
     }
@@ -30,6 +29,7 @@ var Dots = {
           x: Math.random() - 0.5,
           y: Math.random() - 0.5
         },
+        radius: 10,
         color: {
           red: 255,
           green: Math.random() * 255 | 0,
@@ -46,6 +46,7 @@ var Dots = {
     pointer.isRoot = true;
     pointer.px = -1000;
     pointer.py = -1000;
+    pointer.radius = 0;
     return pointer;
   },
 
@@ -109,7 +110,7 @@ var Dots = {
       context.beginPath();
       context.fillStyle = Dots.rgbColor(dot.color);
       context.moveTo(dot.x, dot.y);
-      context.arc(dot.x, dot.y, options.radius, 0, 2 * Math.PI);
+      context.arc(dot.x, dot.y, dot.radius, 0, 2 * Math.PI);
       context.closePath();
       context.fill();
     });
@@ -145,10 +146,10 @@ var Dots = {
   solveCollisionsFor: function(dot, options) {
     Physics.checkForBorderCollision(dot, options);
     
-    var nx1 = dot.x - options.radius,
-        nx2 = dot.x + options.radius,
-        ny1 = dot.y - options.radius,
-        ny2 = dot.y + options.radius;
+    var nx1 = dot.x - dot.radius,
+        nx2 = dot.x + dot.radius,
+        ny1 = dot.y - dot.radius,
+        ny2 = dot.y + dot.radius;
 
     return function(quad, x1, y1, x2, y2) {
       if (quad.point && (quad.point !== dot)) {

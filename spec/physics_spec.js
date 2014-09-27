@@ -170,7 +170,7 @@ describe('Physics', function() {
 
       describe('on a collision distance', function() {
         beforeEach(function() {
-          options = { radius: 10 }; 
+          first.radius = second.radius = 10;
         });
 
         it('should fire callback', function() {
@@ -181,7 +181,7 @@ describe('Physics', function() {
 
       describe('on an allowed dinstance', function() {
         beforeEach(function() {
-          options = { radius: 1 };
+          first.radius = second.radius = 1;
         });
 
         it('should not fire callback', function() {
@@ -199,7 +199,7 @@ describe('Physics', function() {
 
       describe('having zero sizes', function() {
         beforeEach(function() {
-          options = { radius: 0 };
+          first.radius = second.radius = 0;
         });
 
         it('should not fire callback', function() {
@@ -210,7 +210,7 @@ describe('Physics', function() {
 
       describe('having non-zero sizes', function() {
         beforeEach(function() {
-          options = { radius: 10 };
+          first.radius = second.radius = 10;
         });
 
         it('should fire callback', function() {
