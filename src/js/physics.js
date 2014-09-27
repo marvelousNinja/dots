@@ -24,8 +24,8 @@ var Physics = {
 
   checkForCollision: function(first, second, options) {
     Physics.onIntersection(first, second, options, function(first, second, xDiff, yDiff, currentDistance, allowedDistance) {
-      Physics.speedsAfterCollision(first, second);
       Physics.pushOut(first, second, xDiff, yDiff, currentDistance, allowedDistance);
+      Physics.speedsAfterCollision(first, second);
     });
   },
 
