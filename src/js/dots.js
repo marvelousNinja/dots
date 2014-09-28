@@ -72,10 +72,10 @@ var Dots = {
   },
 
   initializeMouseHandlers: function(canvas, pointer) {
-    canvas.on('mousemove', Dots.moveDeflectorHandler(pointer));
+    canvas.on('mousemove', Dots.movePointerHandler(pointer));
   },
 
-  moveDeflectorHandler: function(pointer) {
+  movePointerHandler: function(pointer) {
     return function() {
       var point = d3.mouse(this);
       pointer.px = point[0];
@@ -135,14 +135,17 @@ var Dots = {
 
   move: function(dots) {
     dots.forEach(function(dot) {
+      if (dot.fixed) return;
       dot.x += dot.velocity.x;
       dot.y += dot.velocity.y;
     });
   },
 
   solveCollisionsFor: function(dot, options) {
-    Physics.checkForBorderCollision(dot, options.width, options.height);
-    
+    if(!dot.fixed) {
+      Physics.checkForBorderCollision(dot, options.width, options.height);
+    }
+
     var nx1 = dot.x - dot.radius,
         nx2 = dot.x + dot.radius,
         ny1 = dot.y - dot.radius,
