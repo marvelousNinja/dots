@@ -177,4 +177,45 @@ describe('Dots', function() {
       expect(fakeLayout.start).toHaveBeenCalled();
     });
   });
+
+  describe('.initializeCanvas', function() {
+    var container, containerFn, options;
+
+    beforeEach(function() {
+      options = Dots.setDefaults();
+
+      container = {};
+      
+      containerFn = jasmine.createSpy('containerFn').and.callFake(function() {
+        return container;
+      });
+
+      container.append = containerFn;
+      container.attr   = containerFn;
+
+      spyOn(d3, 'select').and.returnValue(container);
+
+      Dots.initializeCanvas(options);
+    });
+
+    it('should be defined', function() {
+      expect(Dots.initializeCanvas).toBeDefined();
+    });
+
+    it('should use d3 selectors to find the container', function() {
+      expect(d3.select).toHaveBeenCalledWith(options.container);
+    });
+
+    it('should append canvas element to it', function() {
+      expect(container.append).toHaveBeenCalledWith('canvas');
+    });
+
+    it('should set width of the container', function() {
+      expect(container.attr).toHaveBeenCalledWith('width', options.width);
+    });
+
+    it('should set height of the container', function() {
+      expect(container.attr).toHaveBeenCalledWith('height', options.height);
+    });
+  });
 });
