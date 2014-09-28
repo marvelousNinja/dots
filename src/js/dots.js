@@ -119,17 +119,14 @@ var Dots = {
 
   updateColors: function(dots) {
     dots.forEach(function(dot) {
-      dot.color.green = dot.color.green + dot.color.animationDirection * ((Math.random() + 0.5)) * 10 | 0;
-      if (dot.color.green > 255) {
-        dot.color.green = 255;
-        dot.color.animationDirection *= -1;
-      } else {
-        if (dot.color.green < 0) {
-          dot.color.green = 0;
-          dot.color.animationDirection *= -1;
-        }
+      var color = dot.color;
+
+      color.green = color.green + color.animationDirection * ((Math.random() + 0.5)) * 10 | 0;
+
+      if (color.green < 0 || color.green > 255) {
+        color.animationDirection *= -1;
+        color.green = color.green > 255 ? 255 : 0;
       }
-      dot.color.green = dot.color.green;
     });
   },
 

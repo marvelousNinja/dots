@@ -471,7 +471,41 @@ describe('Dots', function() {
   });
 
   describe('.updateColors', function() {
-    // FIX
+    it('should be defined', function() {
+      expect(Dots.updateColors).toBeDefined();
+    });
+
+    describe('with just one dot', function() {
+      var dot;
+
+      beforeEach(function() {
+        dot = { color: { green: 100 } };
+      });
+
+      describe('with positive animation direction', function() {
+        beforeEach(function() {
+          dot.color.animationDirection = 1;
+        });
+
+        it('should increase green component', function() {
+          var prevGreen = dot.color.green;
+          Dots.updateColors([dot]);
+          expect(dot.color.green).toBeGreaterThan(prevGreen);
+        });
+      });
+
+      describe('with negative animation direction', function() {
+        beforeEach(function() {
+          dot.color.animationDirection = -1;
+        });
+
+        it('should decrease green component', function() {
+          var prevGreen = dot.color.green;
+          Dots.updateColors([dot]);
+          expect(dot.color.green).toBeLessThan(prevGreen);
+        });
+      });
+    });
   });
 
   describe('.move', function() {

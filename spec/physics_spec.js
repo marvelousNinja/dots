@@ -217,7 +217,6 @@ describe('Physics', function() {
 
           Physics.updateVelocities(first, second);
 
-          // FIX
           expect([first.velocity, second.velocity]).not.toEqual([initialFirstVelocity, initialSecondVelocity]);
         });
 
@@ -253,7 +252,6 @@ describe('Physics', function() {
 
             Physics.updateVelocities(first, second);
 
-            // FIX
             expect([first.velocity, second.velocity]).not.toEqual([initialFirstVelocity, initialSecondVelocity]);
           });
 
@@ -288,7 +286,6 @@ describe('Physics', function() {
 
             Physics.updateVelocities(first, second);
 
-            // FIX
             expect(first.velocity.x).toBeCloseTo(initialFirstVelocity.x);
             expect(second.velocity.x).toBeCloseTo(initialSecondVelocity.x);
             expect(first.velocity.y).toBeCloseTo(initialFirstVelocity.y);
@@ -327,7 +324,6 @@ describe('Physics', function() {
 
           Physics.updateVelocities(first, second);
 
-          // FIX
           expect([first.velocity, second.velocity]).toEqual([initialFirstVelocity, initialSecondVelocity]);
         });
 
