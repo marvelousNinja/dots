@@ -1,4 +1,8 @@
 describe('Physics', function() {
+  it('should be defined', function() {
+    expect(Physics).toBeDefined();
+  });
+
   describe('.pushOut', function() {
     var first, second;
 
@@ -373,7 +377,7 @@ describe('Physics', function() {
     describe('with a vertical hit', function() {
       beforeEach(function() {
         height = 50;
-        width  = 1000; 
+        width  = 1000;
       });
 
       it('should redirect vertical velocity', function() {
@@ -404,7 +408,7 @@ describe('Physics', function() {
     describe('with a horizontal hit', function() {
       beforeEach(function() {
         height = 1000;
-        width  = 50; 
+        width  = 50;
       });
 
       it('should redirect horizontal velocity', function() {
@@ -435,7 +439,7 @@ describe('Physics', function() {
     describe('with a simultanious hit', function() {
       beforeEach(function() {
         height = 50;
-        width  = 50; 
+        width  = 50;
       });
 
       it('should redirect horizontal velocity', function() {

@@ -1,4 +1,8 @@
 describe('Vector', function() {
+  it('should be defined', function() {
+    expect(Vector).toBeDefined();
+  });
+
   describe('.length', function() {
     it('should be defined', function() {
       expect(Vector.length).toBeDefined();
