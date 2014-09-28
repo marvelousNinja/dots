@@ -18,7 +18,7 @@ var Dots = {
       width:  options.width        || 900,
       height: options.height       || 500,
       count:  options.count        || 100,
-      radius: options.radius       || 10,
+      radius: options.radius       || 15,
       container: options.container || 'body'
     }
   },
