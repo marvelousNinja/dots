@@ -1,67 +1,60 @@
 var Physics = {
-  checkForBorderCollision: function(dot, options) {
-    var horizontalHit = (dot.y < dot.radius) || (dot.y > options.height - dot.radius); 
-    var verticalHit = (dot.x < dot.radius) || (dot.x > options.width - dot.radius);
+  checkForBorderCollision: function(target, xLimit, yLimit) {
+    Physics.onBorderHit(target.x, target.radius, xLimit, function() {
+      target.velocity.x *= -1;
+      target.x = target.x < target.radius ? target.radius : xLimit - target.radius;
+    });
 
-    if (verticalHit) {
-      dot.velocity.x *= -1;
-      if (dot.x < dot.radius) {
-        dot.x = dot.radius;
-      } else {
-        dot.x = options.width - dot.radius;
-      }
-    }
-    
-    if (horizontalHit) {
-      dot.velocity.y *= -1;
-      if (dot.y < dot.radius) {
-        dot.y = dot.radius;
-      } else {
-        dot.y = options.height - dot.radius;
-      }
-    }
-  },
-
-  checkForCollision: function(first, second, options) {
-    Physics.onCollision(first, second, options, function(first, second, xDiff, yDiff, currentDistance, allowedDistance) {
-      Physics.pushOut(first, second, xDiff, yDiff, currentDistance, allowedDistance);
-      Physics.speedsAfterCollision(first, second);
+    Physics.onBorderHit(target.y, target.radius, yLimit, function() {
+      target.velocity.y *= -1;
+      target.y = target.y < target.radius ? target.radius : yLimit - target.radius;
     });
   },
 
-  speedsAfterCollision: function(first, second) {
-    var normalVector               = Vector.byPoints(first, second),
-        firstNormalProjection      = Vector.project(first.velocity, normalVector),
-        secondNormalProjection     = Vector.project(second.velocity, normalVector),
-        tangentialVector           = Vector.orthogonal(normalVector),
-        firstTangentialProjection  = Vector.project(first.velocity, tangentialVector),
-        secondTangentialProjection = Vector.project(second.velocity, tangentialVector);
-
-    first.velocity = Vector.sum(firstTangentialProjection, secondNormalProjection);
-    second.velocity = Vector.sum(secondTangentialProjection, firstNormalProjection);
+  onBorderHit: function(coord, radius, limit, callback) {
+    if (coord < radius || coord > limit - radius) callback();
   },
 
-  onCollision: function(first, second, options, callback) {
-    var xDiff = first.x - second.x,
-        yDiff = first.y - second.y,
-        currentDistance = Vector.length({ x: xDiff, y: yDiff }),
+  checkForCollision: function(first, second) {
+    Physics.onCollision(first, second, function(first, second) {
+      Physics.pushOut(first, second);
+      Physics.updateVelocities(first, second);
+    });
+  },
+
+  updateVelocities: function(first, second) {
+    var normalAxis       = Vector.byPoints(first, second),
+        firstNormal      = Vector.project(first.velocity, normalAxis),
+        secondNormal     = Vector.project(second.velocity, normalAxis),
+        tangentialAxis   = Vector.orthogonal(normalAxis),
+        firstTangential  = Vector.project(first.velocity, tangentialAxis),
+        secondTangential = Vector.project(second.velocity, tangentialAxis);
+
+    first.velocity  = Vector.sum(firstTangential, secondNormal);
+    second.velocity = Vector.sum(secondTangential, firstNormal);
+  },
+
+  onCollision: function(first, second, callback) {
+    if (first.radius == 0 || second.radius == 0) return;
+
+    var currentDistance = Vector.length(Vector.byPoints(first, second)),
         allowedDistance = first.radius + second.radius;
     
-    if (currentDistance < allowedDistance) {
-      callback(first, second, xDiff, yDiff, currentDistance, allowedDistance);
-    }
+    if (currentDistance < allowedDistance) callback(first, second);
   },
 
-  pushOut: function(first, second, xDiff, yDiff, currentDistance, allowedDistance) {
-    if (currentDistance < allowedDistance) {
-      var multipler = (currentDistance - allowedDistance) / (2 * currentDistance),
-          xOut = xDiff * multipler,
-          yOut = yDiff * multipler;
+  pushOut: function(first, second) {
+    var xDiff           = first.x - second.x,
+        yDiff           = first.y - second.y,
+        currentDistance = Vector.length(Vector.byPoints(first, second)),
+        allowedDistance = first.radius + second.radius,
+        multipler       = (currentDistance - allowedDistance) / (2 * currentDistance);
+        xOffset         = xDiff * multipler,
+        yOffset         = yDiff * multipler;
 
-      first.x -= xOut;
-      first.y -= yOut;
-      second.x += xOut;
-      second.y += yOut;
-    }
+    first.x  -= xOffset;
+    first.y  -= yOffset;
+    second.x += xOffset;
+    second.y += yOffset;
   }
 }

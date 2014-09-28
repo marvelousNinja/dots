@@ -17,7 +17,8 @@ var Dots = {
     return {
       width:  options.width        || 900,
       height: options.height       || 500,
-      count:  options.count        || 350,
+      count:  options.count        || 100,
+      radius: options.radius       || 10,
       container: options.container || 'body'
     }
   },
@@ -29,7 +30,7 @@ var Dots = {
           x: Math.random() - 0.5,
           y: Math.random() - 0.5
         },
-        radius: 10,
+        radius: options.radius,
         color: {
           red: 255,
           green: Math.random() * 255 | 0,
@@ -49,8 +50,8 @@ var Dots = {
   initializeLayout: function(dots, options) {
     return d3.layout.force()
              .gravity(0)
-             .charge(function(d, i) { return i == 0 ? -3000 : 0})
-             .chargeDistance(100)
+             .charge(function(d, i) { return i == 0 ? -1000 : 0})
+             .chargeDistance(350)
              .nodes(dots)
              .size([options.width, options.height])
              .start();
@@ -84,10 +85,10 @@ var Dots = {
 
   tickHandler: function(layout, context, dots, options) {
     return function() {
+      Dots.refresh(context, dots, options);
       Dots.solveCollisions(dots, options);
       Dots.move(dots);
       Dots.updateColors(dots);
-      Dots.refresh(context, dots, options);
 
       layout.resume();
     }
@@ -140,7 +141,7 @@ var Dots = {
   },
 
   solveCollisionsFor: function(dot, options) {
-    Physics.checkForBorderCollision(dot, options);
+    Physics.checkForBorderCollision(dot, options.width, options.height);
     
     var nx1 = dot.x - dot.radius,
         nx2 = dot.x + dot.radius,
@@ -149,8 +150,8 @@ var Dots = {
 
     return function(quad, x1, y1, x2, y2) {
       if (quad.point && (quad.point !== dot)) {
-        if (!dot.fixed || !quad.point.fixed) {
-          Physics.checkForCollision(dot, quad.point, options);
+        if (!dot.fixed && !quad.point.fixed) {
+          Physics.checkForCollision(dot, quad.point);
         }
       }
 
